@@ -2,57 +2,44 @@ pipeline {
     agent any
 
     environment {
-        IMAGE = "nabilldz/gofirst:latest"
-        DEPLOY_USER = "servergolangadmin"
-        DEPLOY_SERVER = "35.247.180.230"
+        DOCKERHUB_USER = 'nabilondocker'           // ganti username Docker Hub kamu
+        IMAGE_NAME = 'gofirst'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/NabilLDZ/gofirst.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'go mod tidy'
-                sh 'go build -o gofirst'
+                git 'https://github.com/NabilLDZ/gofirst.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE} ."
+                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
             }
         }
 
-        stage('Push to DockerHub') {
+        stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push ${IMAGE}
-                    docker logout
-                    """
+                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKERHUB_PASS')]) {
+                    sh '''
+                        echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                        docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    '''
                 }
             }
         }
 
-        stage('Deploy to Server2') {
+        stage('Deploy to Server 2') {
             steps {
-                sshagent(['ssh-server2-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} '
-                      docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-                      docker pull ${IMAGE}
-                      docker stop gofirst || true
-                      docker rm gofirst || true
-                      docker run -d --name gofirst -p 80:8080 ${IMAGE}
-                      docker logout
-                    '
-                    """
-                }
+                sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@SERVER2_IP "
+                        docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
+                        docker stop gofirst || true &&
+                        docker rm gofirst || true &&
+                        docker run -d -p 5678:5678 --name gofirst $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    "
+                '''
             }
         }
     }

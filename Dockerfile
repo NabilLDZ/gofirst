@@ -1,13 +1,12 @@
-# ---- Build Stage ----
-FROM golang:1.18 AS builder
+# --- Build stage ---
+FROM golang:1.21 AS build
 WORKDIR /app
 COPY . .
 RUN go mod tidy
-RUN go build -o app
+RUN go build -o main .
 
-# ---- Run Stage ----
-FROM debian:bookworm-slim
+# --- Run stage ---
+FROM alpine:latest
 WORKDIR /root/
-COPY --from=builder /app/app .
-EXPOSE 8080
-CMD ["./app"]
+COPY --from=build /app/main .
+CMD ["./main"]
