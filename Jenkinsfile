@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'nabilondocker'           // ganti username Docker Hub kamu
+        DOCKERHUB_USER = 'nabilldz'       // ganti username Docker Hub kamu
         IMAGE_NAME = 'gofirst'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/NabilLDZ/gofirst.git'
+                git branch: 'main', url: 'https://github.com/NabilLDZ/gofirst.git'
             }
         }
 
@@ -21,10 +21,10 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKERHUB_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-                        echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $DOCKER_USER/$IMAGE_NAME:latest
                     '''
                 }
             }
@@ -32,15 +32,23 @@ pipeline {
 
         stage('Deploy to Server 2') {
             steps {
-                sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@SERVER2_IP "
-                        docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
-                        docker stop gofirst || true &&
-                        docker rm gofirst || true &&
-                        docker run -d -p 5678:5678 --name gofirst $DOCKERHUB_USER/$IMAGE_NAME:latest
-                    "
-                '''
+                sshagent(['ssh-server2-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@35.247.180.230 "
+                            docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
+                            docker stop gofirst || true &&
+                            docker rm gofirst || true &&
+                            docker run -d -p 5678:5678 --name gofirst $DOCKERHUB_USER/$IMAGE_NAME:latest
+                        "
+                    '''
+                }
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker logout'
         }
     }
 }
