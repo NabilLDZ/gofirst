@@ -34,7 +34,7 @@ pipeline {
             steps {
                 sshagent(['goappdev-ssh']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no jenkins@136.110.0.5 "
+                        ssh -o StrictHostKeyChecking=no jenkins-deploy@136.110.0.5 "
                             docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
                             docker stop $IMAGE_NAME || true &&
                             docker rm $IMAGE_NAME || true &&
