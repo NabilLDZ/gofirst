@@ -32,7 +32,7 @@ pipeline {
 
         stage('Deploy to Server 2') {
             steps {
-                sshagent(credentials: ['jenkins-deployy']) {
+                sshagent(credentials: ['jenkins-deploy']) {
                 sh '''
                     ssh -o StrictHostKeyChecking=no jenkins-deploy@136.110.0.5 \
                     'docker pull nabilondocker/gofirst:latest &&
