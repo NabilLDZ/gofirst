@@ -32,19 +32,18 @@ pipeline {
 
         stage('Deploy to Server 2') {
             steps {
-                sshagent(['goappdev-ssh']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no jenkins-deploy@136.110.0.5 "
-                            docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
-                            docker stop $IMAGE_NAME || true &&
-                            docker rm $IMAGE_NAME || true &&
-                            docker run -d -p 5678:5678 --name $IMAGE_NAME $DOCKERHUB_USER/$IMAGE_NAME:latest
-                        "
-                    '''
+            sshagent(['goappdev-ssh']) {
+                sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@136.110.0.5 "
+                        docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
+                        docker stop $IMAGE_NAME || true &&
+                        docker rm $IMAGE_NAME || true &&
+                        docker run -d -p 5678:5678 --name $IMAGE_NAME $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    "
+                '''
                 }
             }
         }
-    }
 
     post {
         always {
