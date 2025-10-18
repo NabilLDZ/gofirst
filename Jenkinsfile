@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Source Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/NabilLDZ/gofirst.git'
+                checkout scm
             }
         }
 
@@ -44,7 +44,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
