@@ -32,9 +32,9 @@ pipeline {
 
         stage('Deploy to Server 2') {
             steps {
-                sshagent(credentials: ['goappdev-ssh']) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'goappdev-ssh', keyFileVariable: 'SSH_KEY')]) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no jenkins-deploy@136.110.0.5 "
+                        ssh -o StrictHostKeyChecking=no -i $SSH_KEY jenkins-deploy@136.110.0.5 "
                             docker pull $DOCKERHUB_USER/$IMAGE_NAME:latest &&
                             docker stop $IMAGE_NAME || true &&
                             docker rm $IMAGE_NAME || true &&
@@ -44,6 +44,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
