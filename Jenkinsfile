@@ -34,7 +34,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['goappdev-ssh']) {
                 sh '''
-                    ssh -o StrictHostKeyChecking=no jenkins@136.110.0.5 \
+                    ssh -o StrictHostKeyChecking=no nabilcolabsprojek@136.110.0.5 \
                     'docker pull nabilondocker/gofirst:latest &&
                     docker stop gofirst || true &&
                     docker rm gofirst || true &&
