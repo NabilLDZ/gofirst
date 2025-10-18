@@ -1,12 +1,14 @@
-# --- Build stage ---
-FROM golang:1.21 AS build
-WORKDIR /app
-COPY . .
-RUN go mod tidy
-RUN go build -o main .
+FROM golang:1.21
 
-# --- Run stage ---
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=build /app/main .
-CMD ["./main"]
+WORKDIR /app
+
+COPY hello.go .
+
+RUN go build -o myapp hello.go
+
+EXPOSE 4000
+
+CMD ["./myapp"]
+
+#halo
+#test
